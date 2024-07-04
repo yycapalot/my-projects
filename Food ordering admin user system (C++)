@@ -1,0 +1,1897 @@
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <iomanip>
+#include <cctype>
+
+/*Animation Library*/
+#include <windows.h> 
+using namespace std;
+
+struct userSettings {
+    string userInput, catSelection;
+    string menuSelection, menuAmount, selectedMenu[1000];
+    string updateSelection, updateAmount;
+    string deleteSelection;
+    string checkoutSelection;
+    int orderid = 0;
+    double menuPrice[1000] = { 0 };
+    int menuQuantity[1000] = { 0 };
+    int tempNum = 0;
+    int numPlace = 0;
+    double totalPrice = 0;
+    int count = 0;
+    int userCat = 0, userA = 0, userA2 = 0, userU = 0, userD = 0, checkout = 0;
+}userSet;
+
+struct adminSettings {
+    string adminName, adminPass, shopName;
+    string adminInput, catInput, menuInput, accInput, transInput;
+}adminSet;
+
+struct menuSettings {
+    string Cat[1000][1000];
+    string category, categoryCheck;
+    string menu[1000][1000];
+    string menuName, menuPrice;
+    string menuCheck;
+    int location[1000] = { 0 };
+}menuSet;
+
+struct accountSettings {
+    string account[1000][1000];
+    string createName, createPass, confirmation, shopName;
+}accSet;
+
+struct transactionSettings {
+    string transHis, transType;
+    string type[1000][1000];
+}transSet;
+
+string temp;
+int returnMain = 0;
+int backMain = 0;
+int numPlace = 0;
+int numPlace2 = 0;
+int tempNum = 0;
+int tempNum2 = 0;
+int pre = 0, post = 0;
+
+ifstream fileread;
+ofstream filewrite;
+
+bool VerificationCheck();
+bool UpperCaseCheck(string, string);
+int Lines(string);
+int Menu_Selection();
+int Delete_Selected();
+int Update_Selected();
+int Checkout();
+void Receipt();
+int User_Selection(string);
+int Administration_Settings();
+int CategoryConfig();
+int MenuConfig();
+int AccountConfiguration();
+void TransactionHistory();
+int TransactionType();
+void DataDelete(string);
+void DisplayCategory();
+void DisplayMenu();
+int DisplaySelection();
+void DisplayTransType();
+void separator();
+void Administration_Interface();
+void User_Interface();
+
+/*Animation Prototype*/
+void Loading(string, int);
+
+int main() {
+    while (true) {
+        backMain = 0;
+        User_Interface();
+        DisplayCategory();
+        DisplaySelection();
+        cout << "!!! No blankspace in first and last input !!!\n\n";
+        cout << "#U Update Menu | #D Delete Menu | #C Checkout | #E Exit\n\nChoose Category >> ";
+        getline(cin, userSet.userInput);
+        if (UpperCaseCheck(userSet.userInput, "#admin")) {//admin section
+            userSet.userCat = 0;
+            Administration_Settings();
+        }
+        else if (userSet.userInput == "E" || userSet.userInput == "e") { //Exit
+            cout << "\n---Thank you for using the system.---\n";
+            system("pause");
+            return 0;
+        }
+        else {
+            userSet.userCat = 1;
+            User_Selection(userSet.userInput);
+            if (VerificationCheck()) {
+                Menu_Selection();
+            }
+        }
+    }
+    return 0;
+}
+
+/*Let customer to choose menu*/
+int Menu_Selection() {
+    while (true) {
+        userSet.userA = 1;
+        User_Interface();
+        DisplayMenu();
+        DisplaySelection();
+        cout << "!!! No blankspace in first and last input !!!\n\n";
+        cout << "#U Update Menu | #D Delete Menu | #C Checkout | #B Back Main\n\nAdd Menu >> ";
+        getline(cin, userSet.menuSelection);
+        if (userSet.menuSelection == "B" || userSet.menuSelection == "b") { //back to main
+            userSet.userA = 0;
+            backMain = 1;
+            return 0;
+        }
+        else {
+            User_Selection(userSet.menuSelection);
+            if (backMain == 1) {
+                return 0;
+            }
+            if (VerificationCheck()) {
+                cout << "Amount   >> ";
+                getline(cin, userSet.menuAmount);
+                userSet.userA2 = 1;
+                if (VerificationCheck()) { // Add selected menu to array
+                    userSet.selectedMenu[userSet.tempNum] = menuSet.menu[userSet.numPlace][2];
+                    userSet.menuPrice[userSet.tempNum] = stod(menuSet.menu[userSet.numPlace][1]);
+                    userSet.menuQuantity[userSet.tempNum] = stoi(userSet.menuAmount);
+                    userSet.count = 1;
+                    userSet.tempNum++;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+/*Let customer to delete selected menu*/
+int Delete_Selected() {
+    while (true) {
+        userSet.userD = 1;
+        User_Interface();
+        if (userSet.tempNum == 0) {
+            separator();
+            cout << "No menu added yet! Please add menu\n";
+            separator();
+        }
+        else {
+            DisplaySelection();
+        }
+        cout << "!!! No blankspace in first and last input !!!\n\n";
+        cout << "#U Update Menu | #C Checkout | #B Back Main\n\nDelete Menu >> ";
+        getline(cin, userSet.deleteSelection);
+        if (userSet.deleteSelection == "B" || userSet.deleteSelection == "b") { // return back to main
+            userSet.userD = 0;
+            backMain = 1;
+            return 0;
+        }
+        else {
+            User_Selection(userSet.deleteSelection);
+            if (backMain == 1) {
+                return 0;
+            }
+            userSet.updateSelection = userSet.deleteSelection;
+            if (VerificationCheck()) {
+                if (userSet.tempNum == 1) {
+                    userSet.selectedMenu[0] = "\0";
+                    userSet.menuQuantity[0] = 0;
+                    userSet.menuPrice[0] = 0;
+                }
+                else {
+                    for (int i = 0; i <= userSet.tempNum; i++) {
+                        if (i < userSet.numPlace) {
+                            continue;
+                        }
+                        else if (i >= userSet.numPlace) {
+                            userSet.selectedMenu[i] = userSet.selectedMenu[i + 1];
+                            userSet.menuQuantity[i] = userSet.menuQuantity[i + 1];
+                            userSet.menuPrice[i] = userSet.menuPrice[i + 1];
+                        }
+                    }
+                }
+                userSet.count = 1;
+                userSet.tempNum--;
+            }
+        }
+    }
+    return 0;
+}
+
+/*Let customer to update selected menu*/
+int Update_Selected()
+{
+    while (true) {
+        userSet.userU = 1;
+        User_Interface();
+        if (userSet.tempNum == 0) {
+            separator();
+            cout << "No menu added yet! Please add menu\n";
+            separator();
+        }
+        else {
+            DisplaySelection();
+        }
+        cout << "!!! No blankspace in first and last input !!!\n\n";
+        cout << "#D Delete Menu | #C Checkout | #B Back Main\n\nChoose     >> ";
+        getline(cin, userSet.updateSelection);
+        if (userSet.updateSelection == "B" || userSet.updateSelection == "b") {
+            userSet.userU = 0;
+            backMain = 1;
+            return 0;
+        }
+        else {
+            User_Selection(userSet.updateSelection);
+            if (backMain == 1) {
+                return 0;
+            }
+            if (VerificationCheck()) {
+                cout << "New Amount >> ";
+                getline(cin, userSet.updateAmount);
+                if (userSet.updateAmount.empty() || userSet.updateAmount[0] == ' ' || userSet.updateAmount[userSet.updateAmount.length() - 1] == ' ') {
+                    cout << "\n---Blankspace detected in last or first input---\n";
+                    system("pause");
+                }
+                else {
+                    userSet.menuQuantity[userSet.numPlace] = stoi(userSet.updateAmount);
+                    userSet.count = 1;
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+/*Customer payment and bill*/
+int Checkout() {
+    while (true) {
+        userSet.checkout = 1;
+        User_Interface();
+        if (userSet.tempNum == 0) {
+            separator();
+            cout << "No menu added yet! Please add menu\n";
+            separator();
+        }
+        else {
+            Receipt();
+            separator();
+            DisplayTransType();
+        }
+        cout << "!!! No blankspace in first and last input !!!\n\n";
+        cout << "#U Update Menu | #D Delete Menu | #B Back Main\n\nChoose Payment Type>> ";
+        getline(cin, userSet.checkoutSelection);
+        if (UpperCaseCheck(userSet.checkoutSelection, "b")) {
+            userSet.checkout = 0;
+            backMain = 1;
+            return 0;
+        }
+        else {
+            User_Selection(userSet.checkoutSelection);
+            if (backMain == 1) {
+                return 0;
+            }
+            else if (userSet.tempNum != 0) {
+                if (VerificationCheck()) {
+                    filewrite.open("transLog.txt", ios::app); //transaction History
+                    filewrite << endl;
+                    filewrite << userSet.orderid << endl;
+                    for (int i = 0; i < userSet.tempNum; i++) {
+                        filewrite << userSet.selectedMenu[i] << " " << userSet.menuQuantity[i] << endl;
+                    }
+                    filewrite << "Payment Type: " << transSet.type[userSet.numPlace][1] << endl;
+                    filewrite.close();
+                    if (userSet.checkoutSelection == transSet.type[0][0] || userSet.checkoutSelection == transSet.type[0][1]) {
+                        Loading("Loading", 1000);
+                    }
+                    else {
+                        Loading("Receiving", 1000);
+                    }
+                    separator();
+                    cout << "  ,---------. .---.  .---.   ____   ,---.   .--..--.   .--.             ____     __   ,-----.      ___    __  " << endl;
+                    cout << "  \\          \\|   |  |_ _| .'  __ `.|    \\  |  ||  | _/  /              \\   \\   /  /.'  .-,  '.  .'   |  |  | " << endl;
+                    cout << "   `--.  ,---'|   |  ( ' )/   '  \\  \\  ,  \\ |  || (`' ) /                \\  _. /  '/ ,-.|  \\ _ \\ |   .'  |  | " << endl;
+                    cout << "      |   \\   |   '-(_{;}_)___|  /  |  |\\_ \\|  ||(_ ()_)                  _( )_ .';  \\  '_ /  | :.'  '_  |  | " << endl;
+                    cout << "      :_ _:   |      (_,_)   _.-`   |  _( )_\\  || (_,_)   __          ___(_ o _)' |  _`,/ \\ _/  |'   ( \\.-. | " << endl;
+                    cout << "      (_I_)   | _ _--.   |.'   _    | (_ o _)  ||  |\\ \\  |  |        |   |(_,_)'  : (  '\\_/ \\   ;' (`. _` / | " << endl;
+                    cout << "     (_(=)_)  |( ' ) |   ||  _( )_  |  (_,_)\\  ||  | \\ `'   /        |   `-'  /    \\ `' / \\  ) / | (_(_) _) | " << endl;
+                    cout << "      (_I_)   (_{;}_)|   |\\ (_ o _) /  |    |  ||  |  \\    /          \\      /      '. \\_/``'.'   \\ /  . \\ / " << endl;
+                    cout << "      '---'   '(_,_) '---' '.(_,_).''--'    '--'`--'   `'-'            `-..-'         '-----'      ``-'`-''  " << endl;
+                    separator();
+                    if (userSet.checkoutSelection == transSet.type[0][0] || userSet.checkoutSelection == transSet.type[0][1]) {
+                        cout << "\t\t\t\t\tWe have accept your order. \n\n\t\t\t\t\t Please pay at counter.\n\n\t\t\t\t\t\tThank you.\n\n";
+                    }
+                    else {
+                        cout << "\t\t\t\t\tWe have received your payment.\n\n\t\t\t\t  Thank you and please come again next time.\n\n";
+                    }
+                    system("pause");
+                    for (int i = 0; i < userSet.tempNum; i++) {
+                        userSet.selectedMenu[i] = "\0";
+                        userSet.menuQuantity[i] = 0;
+                        userSet.menuPrice[i] = 0;
+                    }
+                    userSet.checkout = 0;
+                    userSet.tempNum = 0;
+                    backMain = 1;
+                    return 0;
+                }
+            }
+            else {
+                cout << "\n---Invalid Input---\n";
+                system("pause");
+            }
+        }
+    }
+}
+
+/*Allow customer to have selection*/
+int User_Selection(string selection) {
+    if (selection == "U" || selection == "u") {
+        if (userSet.updateSelection == "U" || userSet.updateSelection == "u") {
+            return 0;
+        }
+        else {
+            userSet.userCat = 0;
+            userSet.userA = 0;
+            userSet.userD = 0;
+            userSet.checkout = 0;
+            Update_Selected();
+        }
+    }
+    else if (selection == "D" || selection == "d") {
+        if (userSet.deleteSelection == "D" || userSet.deleteSelection == "d") {
+            return 0;
+        }
+        else {
+            userSet.userCat = 0;
+            userSet.userA = 0;
+            userSet.userU = 0;
+            userSet.checkout = 0;
+            Delete_Selected();
+        }
+    }
+    else if (selection == "C" || selection == "c") {
+        if (userSet.checkoutSelection == "C" || userSet.checkoutSelection == "c") {
+            return 0;
+        }
+        else {
+            userSet.userCat = 0;
+            userSet.userA = 0;
+            userSet.userD = 0;
+            userSet.userU = 0;
+            Checkout();
+        }
+    }
+    return 0;
+}
+
+/*Allow admin to add the category type for menu*/
+int CategoryConfig() {
+    while (true) {
+        Administration_Interface();
+        DisplayCategory();
+        cout << "#1 Add \n#2 Update \n#3 Delete \n#B Back\n#E System Exit\n>> ";
+        cin >> adminSet.catInput;
+        cin.ignore();
+        if (adminSet.catInput == "1") {//Add Category
+            while (true) {
+                Administration_Interface();
+                DisplayCategory();
+                cout << "!!!No blankspace in first and last input!!!\n\n";
+                cout << "Category Name (#B Back) >> ";
+                getline(cin, menuSet.category);
+                if (menuSet.category == "B" || menuSet.category == "b") { //Back
+                    adminSet.catInput.clear();
+                    break;
+                }
+                else if (VerificationCheck()) {
+                    int numlines = Lines("category") / 2;
+                    filewrite.open("category.txt");
+                    if (numlines == 0) {//write the first category                    
+                        filewrite << 1 << " " << 0 << endl << menuSet.category << endl;
+                    }
+                    else {
+                        for (int i = 0; i <= numlines; i++) {
+                            if (i != numlines) { //rewrite previous category  
+                                filewrite << menuSet.Cat[i][0] << " " << menuSet.Cat[i][1] << endl << menuSet.Cat[i][2] << endl;
+                            }
+                            else if (i == numlines) { //write new category 
+                                filewrite << i + 1 << " " << 0 << endl << menuSet.category << endl;
+                            }
+                        }
+                    }
+                    filewrite.close();
+                }
+            }
+        }
+        else if (adminSet.catInput == "2") {//Update Category
+            while (true) {
+                Administration_Interface();
+                DisplayCategory();
+                cout << "!!!No blankspace in first and last input!!!\n\n";
+                cout << "Category Name (#B Back) >> ";
+                getline(cin, menuSet.categoryCheck);
+                if (menuSet.categoryCheck == "B" || menuSet.categoryCheck == "b") {//Back
+                    adminSet.catInput.clear();
+                    break;
+                }
+                tempNum = 1;
+                if (VerificationCheck()) {
+                    cout << "New Category Name       >> ";
+                    getline(cin, menuSet.category);
+                    if (VerificationCheck())
+                    {
+                        int numlines = Lines("category") / 2;;
+                        filewrite.open("category.txt");
+                        for (int i = 0; i < numlines; i++) {
+                            if (i == numPlace) { // write updated category to file
+                                filewrite << menuSet.Cat[i][0] << " " << menuSet.Cat[i][1] << endl << menuSet.category << endl;
+                            }
+                            else { //rewrite previous category
+                                filewrite << menuSet.Cat[i][0] << " " << menuSet.Cat[i][1] << endl << menuSet.Cat[i][2] << endl;
+                            }
+                        }
+                        filewrite.close();
+                    }
+                }
+            }
+        }
+        else if (adminSet.catInput == "3") {//Delete Category
+            while (true) {
+                Administration_Interface();
+                DisplayCategory();
+                cout << "!!!No blankspace in first and last input!!!\n\n";
+                cout << "Category Name (#B Back) >> ";
+                getline(cin, menuSet.category);
+                if (menuSet.category == "B" || menuSet.category == "b") {
+                    adminSet.catInput.clear();
+                    break;
+                }
+                else if (VerificationCheck()) {
+                    fileread.open("category.txt");
+                    for (int i = 0; i <= numPlace; i++) { //get number of menu in selected category
+                        fileread >> temp >> menuSet.location[i];
+                        fileread.ignore();
+                        getline(fileread, temp);
+                        if (i == 0) {
+                            post = menuSet.location[i];
+                        }
+                        else {
+                            pre = post;
+                            post += menuSet.location[i];
+                        }
+                    }
+                    fileread.close();
+                    int menulines = Lines("menu") / 2;
+                    fileread.open("menu.txt");
+                    for (int i = 0; i < menulines; i++) {//read all menu into menu array
+                        fileread >> menuSet.menu[i][0] >> menuSet.menu[i][1];
+                        fileread.ignore();
+                        getline(fileread, menuSet.menu[i][2]);
+                    }
+                    fileread.close();
+                    filewrite.open("menu.txt");
+                    for (int i = 0; i < menulines; i++) { //delete the menu in category
+                        if (i < pre)
+                        {
+                            filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                        }
+                        else if (i >= post)
+                        {
+                            filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                        }
+                    }
+                    filewrite.close();
+                    int numlines = Lines("category") / 2;
+                    filewrite.open("category.txt");
+                    for (int i = 0; i < numlines; i++) {//delete the selected category
+                        if (i < numPlace) {
+                            filewrite << i + 1 << " " << menuSet.Cat[i][1] << endl << menuSet.Cat[i][2] << endl;
+                        }
+                        else if (i > numPlace) {
+                            filewrite << i << " " << menuSet.Cat[i][1] << endl << menuSet.Cat[i][2] << endl;
+                        }
+                    }
+                    filewrite.close();
+                }
+            }
+        }
+        else if (adminSet.catInput == "b" || adminSet.catInput == "B") {//Back
+            adminSet.adminInput.clear();
+            break;
+        }
+        else if (adminSet.catInput == "e" || adminSet.catInput == "E") {//System Exut
+            Loading("Exiting Administration Settings", 400);
+            returnMain = 1;
+            return 0;
+        }
+        else { //Validator
+            cout << "\n---Invalid Input---\n";
+            system("pause");
+        }
+    }
+    return 0;
+}
+
+/*Allow admin to add menu to selected category*/
+int MenuConfig()
+{
+    while (true) {
+        menuSet.category.clear();
+        Administration_Interface();
+        DisplayCategory();
+        cout << "Category Name (#B Back) >> ";
+        cin >> menuSet.category;
+        if (menuSet.category == "B" || menuSet.category == "b") {//Back
+            adminSet.adminInput.clear();
+            break;
+        }
+        tempNum = 1;
+        if (VerificationCheck()) { //verify selected category
+            while (true) {
+                Administration_Interface();
+                DisplayMenu();
+                int place = post - pre;
+                cout << "#1 Add\n#2 Update\n#3 Delete\n#B Back\n#E System Exit\n>> ";
+                cin >> adminSet.menuInput;
+                cin.ignore();
+                if (adminSet.menuInput == "1") {//Add
+                    while (true) {
+                        Administration_Interface();
+                        DisplayMenu();
+                        cout << "!!! No blankspace in first and last input !!!\n\n";
+                        cout << "Name of menu (#B Back) >> ";
+                        getline(cin, menuSet.menuName);
+                        if (menuSet.menuName == "B" || menuSet.menuName == "b") {
+                            adminSet.menuInput.clear();
+                            break;
+                        }
+                        cout << "Price of menu          >> ";
+                        getline(cin, menuSet.menuPrice);
+                        if (VerificationCheck()) {
+                            int numlines = Lines("menu") / 2;
+                            filewrite.open("menu.txt");
+                            if (numlines == 0) { //write the first menu to selected category
+                                filewrite << 1 << " " << menuSet.menuPrice << endl << menuSet.menuName << endl;
+                            }
+                            else {
+                                for (int i = 0; i <= numlines; i++) {
+                                    if (pre == post) // valid if count of menu in selected category is 0
+                                    {
+                                        if (i == pre) {// write in the added menu
+                                            filewrite << 1 << " " << menuSet.menuPrice << endl << menuSet.menuName << endl;
+                                        }
+                                        else if (i > pre) { // rewrite the added menu of others category after the present menu
+                                            filewrite << menuSet.menu[i - 1][0] << " " << menuSet.menu[i - 1][1] << endl << menuSet.menu[i - 1][2] << endl;
+                                        }
+                                        else { // rewrite the previous menu of others category 
+                                            filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                        }
+                                    }
+                                    else { //valid if count of menu in selected category not equal 0
+                                        if (i >= pre && i < post) { // find the allocated menu
+                                            for (int j = 0; j <= place; j++) {
+                                                if (j == place) { //write the added menu
+                                                    filewrite << place + 1 << " " << menuSet.menuPrice << endl << menuSet.menuName << endl;
+                                                }
+                                                else { //rewrite the previous menu
+                                                    filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                                }
+                                                i++;
+                                            }
+                                        }
+                                        else if (i < pre) { // rewrite the previous menu of others category 
+                                            filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                        }
+                                        else {// rewrite the added menu of others category after the present menu
+                                            filewrite << menuSet.menu[i - 1][0] << " " << menuSet.menu[i - 1][1] << endl << menuSet.menu[i - 1][2] << endl;
+                                        }
+                                    }
+                                }
+                            }
+                            filewrite.close();
+                            menuSet.Cat[numPlace][1] = to_string(++place);
+                            int catlines = Lines("category") / 2;
+                            filewrite.open("category.txt");
+                            for (int i = 0; i < catlines; i++)
+                            {
+                                filewrite << menuSet.Cat[i][0] << " " << menuSet.Cat[i][1] << endl << menuSet.Cat[i][2] << endl;
+                            }
+                            filewrite.close();
+                        }
+                    }
+                }
+                else if (adminSet.menuInput == "2") {//Update
+                    while (true) {
+                        Administration_Interface();
+                        DisplayMenu();
+                        cout << "!!! No blankspace in first and last input !!!\n\n";
+                        cout << "Name of menu (#B Back) >> ";
+                        getline(cin, menuSet.menuCheck);
+                        if (menuSet.menuCheck == "B" || menuSet.menuCheck == "b") {
+                            adminSet.menuInput.clear();
+                            break;
+                        }
+                        tempNum2 = 1;
+                        if (VerificationCheck()) { //validate for the selected menu
+                            cout << "New name of menu       >> ";
+                            getline(cin, menuSet.menuName);
+                            cout << "New price of menu      >> ";
+                            getline(cin, menuSet.menuPrice);
+                            if (VerificationCheck()) { //check for duplication
+                                int numlines = Lines("menu") / 2;
+                                filewrite.open("menu.txt");
+                                for (int i = 0; i < numlines; i++) {
+                                    if (i < numPlace2) { //rewrite the previous menu (before)
+                                        filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                    }
+                                    else if (i == numPlace2) { // write theupdated menu
+                                        filewrite << menuSet.menu[i][0] << " " << menuSet.menuPrice << endl << menuSet.menuName << endl;
+                                    }
+                                    else { // rewrite the previous menu (after)
+                                        filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                    }
+                                }
+                                filewrite.close();
+                            }
+                        }
+                    }
+                }
+                else if (adminSet.menuInput == "3") { // Delete Menu
+                    while (true) {
+                        Administration_Interface();
+                        DisplayMenu();
+                        cout << "!!! No blankspace in first and last input !!!\n\n";
+                        cout << "Name of menu (#B Back) >> ";
+                        getline(cin, menuSet.menuName);
+                        if (menuSet.menuName == "B" || menuSet.menuName == "b") {
+                            adminSet.menuInput.clear();
+                            break;
+                        }
+                        else if (VerificationCheck()) {
+                            int numlines = Lines("menu") / 2;
+                            int count;
+                            filewrite.open("menu.txt");
+                            for (int i = 0; i <= numlines; i++) {
+                                if (i < pre) { //rewrite the previous menu (before)
+                                    filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                }
+                                else if (i >= pre && i < post) { // find the allocated menu
+                                    if (pre == 0) { // valid if previous category don't have menu
+                                        for (int j = 0; j < place; j++) { //skip the sleected menu for delete
+                                            if (j < numPlace2) {
+                                                filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                            }
+                                            else if (j > numPlace2) {
+                                                filewrite << j << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                            }
+                                            i++;
+                                        }
+                                    }
+                                    else {
+                                        for (int j = 0; j < place; j++) {//skip the sleected menu for delete
+                                            count = j;
+                                            if ((j + pre) < numPlace2) {
+                                                filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                            }
+                                            else if ((j + pre) > numPlace2) {
+                                                filewrite << count << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                            }
+                                            i++;
+                                        }
+                                        i--;
+                                    }
+                                }
+                                else { //rewrite the previous menu (after)
+                                    filewrite << menuSet.menu[i][0] << " " << menuSet.menu[i][1] << endl << menuSet.menu[i][2] << endl;
+                                }
+                            }
+                            filewrite.close();
+                            menuSet.Cat[numPlace][1] = to_string(--place);;
+                            int catlines = Lines("category") / 2;
+                            filewrite.open("category.txt");
+                            for (int i = 0; i < catlines; i++) {
+                                filewrite << menuSet.Cat[i][0] << " " << menuSet.Cat[i][1] << endl << menuSet.Cat[i][2] << endl;
+                            }
+                            filewrite.close();
+                        }
+                    }
+                }
+                else if (adminSet.menuInput == "b" || adminSet.menuInput == "B") {
+                    menuSet.category.clear();
+                    break;
+                }
+                else if (adminSet.menuInput == "e" || adminSet.menuInput == "E") {
+                    Loading("Exiting Administration Settings", 400);
+                    returnMain = 1;
+                    return 0;
+                }
+                else {
+                    cout << "\n---Invalid Input---\n";
+                    system("pause");
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+/*Allow admin to create and delete account as well as rename restaurant*/
+int AccountConfiguration() {
+    while (true) {
+        Administration_Interface();
+        cout << "#1 Create New Account\n#2 Deactivate Account\n#3 Restaurant Title\n#B Back\n#E System Exit\n>> ";
+        cin >> adminSet.accInput;
+        cin.ignore();
+        if (adminSet.accInput == "1") {//Create New Account
+            int count = 0;
+            do {
+                count = 0;
+                Administration_Interface();
+                cout << "!!! Please create username and password with more than 5 INPUTS and NO BLANKSPACE !!!\n\n";
+                cout << "Username(#B Back) >> ";
+                getline(cin, accSet.createName);
+                if (accSet.createName == "B" || accSet.createName == "b") {//Back
+                    adminSet.accInput.clear();
+                    break;
+                }
+                cout << "Password          >> ";
+                getline(cin, accSet.createPass);
+                if (accSet.createName.length() <= 5 || accSet.createPass.length() <= 5 || accSet.createName.empty() || accSet.createPass.empty()) {
+                    count++;
+                    cout << "\n---Please create username and password with more than 5 inputs---\n";
+                    system("pause");
+                }
+                else {
+                    for (int i = 0; i < accSet.createName.length(); i++) {// validation of blankspace in username
+                        if (accSet.createName[i] == ' ') {
+                            count++;
+                        }
+                    }
+                    for (int i = 0; i < accSet.createPass.length(); i++) {// validation of blankspace in password
+                        if (accSet.createPass[i] == ' ') {
+                            count++;
+                        }
+                    }
+                    if (count > 0) {
+                        cout << "\n---Blankspace detected in Username or Password---\n";
+                        system("pause");
+                    }
+                    else if (accSet.createName == accSet.createPass) {//Invalid if Username and Password are the same
+                        count++;
+                        cout << "\n---Username and Password cannot be the same---\n";
+                        system("pause");
+                    }
+                    else if (VerificationCheck()) {
+                        filewrite.open("account.txt", ios::app);
+                        filewrite << accSet.createName << ' ' << accSet.createPass << endl;
+                        filewrite.close();
+                        cout << "\n---Create Successful---\n";
+                        system("pause");
+                        adminSet.accInput.clear();
+                    }
+                    else { //Invalid if create with duplicate username
+                        count++;
+                        cout << "\n---Invalid Username---\n";
+                        system("pause");
+                    }
+                }
+            } while (count != 0);
+        }
+        else if (adminSet.accInput == "2") {
+            while (true) {
+                Administration_Interface();
+                cout << "Username (#B Back) >> ";
+                cin >> accSet.createName;
+                if (accSet.createName == "B" || accSet.createName == "b") { //Back
+                    adminSet.accInput.clear();
+                    break;
+                }
+                cout << "Password           >> ";
+                cin >> accSet.createPass;
+                if (accSet.createName == adminSet.adminName && accSet.createPass == adminSet.adminPass) {//delete current using account
+                    do {
+                        cout << "\nAre you confirm to delete current using account? [Y/N]\n>> ";
+                        cin >> accSet.confirmation;
+                        if (accSet.confirmation == "Y" || accSet.confirmation == "y") {
+                            DataDelete("account");
+                            cout << "\n---Account has been removed---\n";
+                            returnMain = 1;
+                            system("pause");
+                            return 0;
+                        }
+                        else if (accSet.confirmation == "N" || accSet.confirmation == "n") {
+                            break;
+                        }
+                    } while (accSet.confirmation != "Y" || accSet.confirmation != "y");
+                }
+                else if (VerificationCheck()) {
+                    DataDelete("account");
+                    cout << "\n---Account has been removed---\n";
+                    system("pause");
+                    break;
+                }
+                else {
+                    cout << "\n---Invalid Username or Password---\n";
+                    system("pause");
+                }
+            }
+        }
+        else if (adminSet.accInput == "3") {//Restaurant Name Configuration
+            while (true) {
+                int numlines = Lines("account");
+                Administration_Interface();
+                fileread.open("account.txt");
+                getline(fileread, adminSet.shopName);
+                cout << adminSet.shopName << endl;
+                for (int i = 0; i < numlines - 1; i++) {
+                    fileread >> accSet.account[i][0] >> accSet.account[i][1];
+                }
+                fileread.close();
+                separator();
+                cout << "New Restaurant Title (#B Back)\n>> ";
+                getline(cin, accSet.shopName);
+                if (accSet.shopName == "B" || accSet.shopName == "b") { //Back
+                    adminSet.accInput.clear();
+                    break;
+                }
+                else if (accSet.shopName == adminSet.shopName) {
+                    cout << "\n---Invalid Input---\n";
+                    system("pause");
+                }
+                else {
+                    filewrite.open("account.txt");
+                    filewrite << accSet.shopName << endl;
+                    for (int i = 0; i < numlines - 1; i++)
+                    {
+                        filewrite << accSet.account[i][0] << ' ' << accSet.account[i][1] << endl;
+                    }
+                    filewrite.close();
+                    cout << "\n---Rename Successful !!!---\n";
+                    system("pause");
+                }
+            }
+        }
+        else if (adminSet.accInput == "B" || adminSet.accInput == "b") { //Back
+            adminSet.adminInput.clear();
+            break;
+        }
+        else if (adminSet.accInput == "E" || adminSet.accInput == "e") { //Return to Main
+            Loading("Exiting Administration Settings", 400);
+            returnMain = 1;
+            return 0;
+        }
+        else {
+            cout << "\n---Invalid Input---\n";
+            system("pause");
+        }
+    }
+    return 0;
+}
+
+/*Allow admin to view what transacton has been made*/
+void TransactionHistory()
+{
+    Administration_Interface();
+    fileread.open("transLog.txt");
+    fileread.ignore();
+    if (fileread.fail()) {
+        cout << "No record found\n";
+    }
+    else {
+        while (!fileread.eof())
+        {
+            getline(fileread, transSet.transHis);
+            cout << transSet.transHis << endl;
+        }
+    }
+    separator();
+    cout << "Enter any to BACK \n";
+    adminSet.adminInput.clear();
+    system("pause");
+}
+
+/*Allow admin to add and delete payment method*/
+int TransactionType() {
+    while (true) {
+        Administration_Interface();
+        DisplayTransType();
+        cout << "#1 Add\n#2 Delete\n#B Back\n>> ";
+        cin >> adminSet.transInput;
+        cin.ignore();
+        if (adminSet.transInput == "B" || adminSet.transInput == "b") {
+            adminSet.adminInput.clear();
+            break;
+        }
+        if (adminSet.transInput == "1") {
+            while (true) {
+                Administration_Interface();
+                DisplayTransType();
+                cout << "!!! No blankspace in first and last input !!!\n\n";
+                cout << "Add (#B Back) >> ";
+                getline(cin, transSet.transType);
+                if (transSet.transType == "B" || transSet.transType == "b") {
+                    adminSet.transInput.clear();
+                    break;
+                }
+                else if (VerificationCheck()) {
+                    int numlines = (Lines("transType") / 2) + 1;
+                    filewrite.open("transType.txt");
+                    if (numlines == 0) {
+                        filewrite << 2 << endl << transSet.transType << endl;
+                    }
+                    else {
+                        for (int i = 1; i <= numlines; i++) {
+                            if (i != numlines)
+                            {
+                                filewrite << transSet.type[i][0] << endl << transSet.type[i][1] << endl;
+                            }
+                            else {
+                                filewrite << i + 1 << endl << transSet.transType << endl;
+                            }
+                        }
+                    }
+                    filewrite.close();
+                }
+            }
+        }
+        else if (adminSet.transInput == "2") {
+            while (true) {
+                Administration_Interface();
+                DisplayTransType();
+                cout << "!!! Selection 1 cannot be deleted as it is default !!!\n\n";
+                cout << "Delete (#B Back) >> ";
+                getline(cin, transSet.transType);
+                if (transSet.transType == "B" || transSet.transType == "b") {
+                    adminSet.transInput.clear();
+                    break;
+                }
+                else if (VerificationCheck()) {
+                    int numlines = (Lines("transType") / 2) + 1;
+                    filewrite.open("transType.txt");
+                    for (int i = 1; i < numlines; i++) {
+                        if (i < numPlace) {
+                            filewrite << transSet.type[i][0] << endl << transSet.type[i][1] << endl;
+                        }
+                        else if (i > numPlace) {
+                            filewrite << i << endl << transSet.type[i][1] << endl;
+                        }
+                    }
+                    filewrite.close();
+                }
+            }
+        }
+        else {
+            cout << "\n---Invalid Input---\n";
+            system("pause");
+        }
+    }
+    return 0;
+}
+
+/*Validator check*/
+bool VerificationCheck() {
+    if (adminSet.adminInput == "0" || adminSet.adminInput == "3") {//Account Section
+        int numlines = Lines("account") - 1;
+        fileread.open("account.txt");
+        getline(fileread, adminSet.shopName);
+        for (int i = 0; i < numlines; i++) {
+            fileread >> accSet.account[i][0] >> accSet.account[i][1];
+        }
+        fileread.close();
+        if (adminSet.accInput == "1") {//Create New Account
+            for (int i = 0; i < numlines; i++) {
+                if (accSet.createName == accSet.account[i][0]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else if (adminSet.accInput == "2") {//Delete Account
+            for (int i = 0; i < numlines; i++) {
+                if (accSet.createName == accSet.account[i][0] && accSet.createPass == accSet.account[i][1]) {
+                    numPlace = i;
+                    return true;
+                }
+            }
+            return false;
+        }
+        else {
+            for (int i = 0; i < numlines; i++) { //Administration Settings
+                if (adminSet.adminName == accSet.account[i][0] && adminSet.adminPass == accSet.account[i][1]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    else if (adminSet.adminInput == "1") { // Category Config
+        int numlines = Lines("category") / 2;
+        fileread.open("category.txt");
+        for (int i = 0; i < numlines; i++) { //Read category to array
+            fileread >> menuSet.Cat[i][0] >> menuSet.Cat[i][1];
+            fileread.ignore();
+            getline(fileread, menuSet.Cat[i][2]);
+        }
+        fileread.close();
+        if (tempNum == 1) {// first check for update category
+            tempNum = 0; //reset back to 0
+            if (menuSet.categoryCheck.empty() || menuSet.categoryCheck[0] == ' ' || menuSet.categoryCheck[menuSet.categoryCheck.length() - 1] == ' ') {
+                cout << "\n---Blankspace detected in last or first input---\n";
+                system("pause");
+                return false;
+            }
+            else {
+                for (int i = 0; i < numlines; i++) {
+                    if (UpperCaseCheck(menuSet.categoryCheck, menuSet.Cat[i][2]) || menuSet.categoryCheck == menuSet.Cat[i][0])
+                    {
+                        numPlace = i;
+                        return true;
+                    }
+                }
+                cout << "\n---Duplicate input found---\n";
+                system("pause");
+                return false;
+            }
+        }
+        else {
+            if (menuSet.category.empty() || menuSet.category[0] == ' ' || menuSet.category[menuSet.category.length() - 1] == ' ') {
+                cout << "\n---Blankspace detected in last or first input---\n";
+                system("pause");
+                return false;
+            }
+            else {
+                int count = 0;
+                if (adminSet.catInput == "1" || adminSet.catInput == "2") { // restrict user to input any digit
+                    for (int i = 0; i < menuSet.category.length(); i++) {
+                        if (isdigit(menuSet.category[i]))
+                        {
+                            count++;
+                        }
+                    }
+                }
+                if (count == menuSet.category.length()) {
+                    cout << "\n---Cannot input digit only in name---\n";
+                    system("pause");
+                    return false;
+                }
+                for (int i = 0; i < numlines; i++) {
+                    if (adminSet.catInput == "1" && UpperCaseCheck(menuSet.category, menuSet.Cat[i][2])) {
+                        cout << "\n---Duplicate input found---\n";
+                        system("pause");
+                        return false;
+                    }
+                    else if (adminSet.catInput == "2" && UpperCaseCheck(menuSet.category, menuSet.Cat[i][2]) && i != numPlace) {
+                        cout << "\n---Duplicate input found---\n";
+                        system("pause");
+                        return false;
+                    }
+                    else if (adminSet.catInput == "3" && UpperCaseCheck(menuSet.category, menuSet.Cat[i][2]) || menuSet.category == menuSet.Cat[i][0]) {
+                        numPlace = i;
+                        return true;
+                    }
+                }
+                if (adminSet.catInput == "1" || adminSet.catInput == "2") {
+                    return true;
+                }
+                else {
+                    cout << "\n---No record found---\n";
+                    system("pause");
+                    return false;
+                }
+            }
+        }
+    }
+    else if (adminSet.adminInput == "2") { //Menu Section
+        if (tempNum == 1) { //category check
+            tempNum = 0; //reset back to 0
+            for (int i = 0; i < (Lines("category") / 2); i++) {
+                if (UpperCaseCheck(menuSet.category, menuSet.Cat[i][2]) == true || menuSet.category == menuSet.Cat[i][0]) {
+                    numPlace = i;
+                    return true;
+                }
+            }
+            cout << "\n---No record found---\n";
+            system("pause");
+            return false;
+        }
+        else if (tempNum2 == 1) { // first check for update menu
+            tempNum2 = 0;
+            if (menuSet.menuCheck.empty() || menuSet.menuCheck[0] == ' ' || menuSet.menuCheck[menuSet.menuCheck.length() - 1] == ' ') {
+                cout << "\n---Blankspace detected in last or first input---\n";
+                system("pause");
+                return false;
+            }
+            for (int i = pre; i < post; i++) { // valid if input exist value
+                if (UpperCaseCheck(menuSet.menuCheck, menuSet.menu[i][2]) == true || menuSet.menuCheck == menuSet.menu[i][0]) {
+                    numPlace2 = i;
+                    return true;
+                }
+            }
+            cout << "\n---Duplicate input found---\n";
+            system("pause");
+            return false;
+        }
+        else {
+            if (menuSet.menuName.empty() || menuSet.menuName[0] == ' ' || menuSet.menuName[menuSet.menuName.length() - 1] == ' ') {
+                cout << "\n---Blankspace detected in last or first input---\n";
+                system("pause");
+                return false;
+            }
+            int count = 0;
+            int digit = 0;
+            if (adminSet.menuInput == "1" || adminSet.menuInput == "2") {//invalid if user input only digit
+                for (int i = 0; i < menuSet.menuName.length(); i++) {
+                    if (isdigit(menuSet.menuName[i])) {
+                        digit++;
+                    }
+                }
+                if (menuSet.menuPrice.empty()) {
+                    cout << "\n---Blankspace detected in last or first input---\n";
+                    system("pause");
+                    return false;
+                }
+            }
+            if (digit == menuSet.menuName.length()) {
+                cout << "\n---Cannot input digit only in name---\n";
+                system("pause");
+                return false;
+            }
+            for (int i = pre; i < post; i++) {
+                if (adminSet.menuInput == "1" && UpperCaseCheck(menuSet.menuName, menuSet.menu[i][2])) {//invalid if duplicate input
+                    cout << "\n---Duplicate input found---\n";
+                    system("pause");
+                    return false;
+                }
+                else if (adminSet.menuInput == "2" && UpperCaseCheck(menuSet.menuName, menuSet.menu[i][2]) && i != numPlace2) {
+                    cout << "\n---Duplicate input found---\n";
+                    system("pause");
+                    return false;
+                }
+                else if (adminSet.menuInput == "3" && UpperCaseCheck(menuSet.menuName, menuSet.menu[i][2]) || menuSet.menuName == menuSet.menu[i][0]) {
+                    numPlace2 = i;
+                    return true;
+                }
+            }
+            for (int i = 0; i < menuSet.menuPrice.length(); i++) {
+                if (menuSet.menuPrice[i] == '.') { //invalid if user input more than one '.'
+                    count++;
+                }
+                else if (count >= 2) {
+                    cout << "\n---Input one decimal only in price---\n";
+                    system("pause");
+                    return false;
+                }
+
+                if (menuSet.menuPrice[i] == ' ') { // invalid if whitespace detected in price
+                    cout << "\n---Blankspace detected in last or first input---\n";
+                    system("pause");
+                    return false;
+                }
+                else if (menuSet.menuPrice[menuSet.menuPrice.length() - 1] == '.') { //invalid if no digit before and after "." 
+                    cout << "\n---Invalid Input---\n";
+                    system("pause");
+                    return false;
+                }
+                else if (!isdigit(menuSet.menuPrice[i]) && menuSet.menuPrice[i] != '.') { // invalid if price is not digit
+                    cout << "\n---Input digit only in price---\n";
+                    system("pause");
+                    return false;
+                }
+            }
+            if (adminSet.menuInput == "1" || adminSet.menuInput == "2") {
+                return true;
+            }
+            else {
+                cout << "\n---No record found---\n";
+                system("pause");
+                return false;
+            }
+        }
+    }
+    else if (adminSet.adminInput == "5") { //Transaction Type
+        int numlines = (Lines("transType") / 2) + 1;
+        if (transSet.transType[0] == ' ' || transSet.transType.empty() || transSet.transType[transSet.transType.length() - 1] == ' ') {
+            cout << "\n---Blankspace detected in last or first input---\n";
+            system("pause");
+            return false;
+        }
+        else {
+            if (adminSet.transInput == "1") {
+                int digit = 0;
+                for (int i = 0; i < transSet.transType.length(); i++) {
+                    if (isdigit(transSet.transType[i])) {
+                        digit++;
+                    }
+                }
+                if (digit == transSet.transType.length()) {
+                    cout << "\n---Cannot input digit only in name---\n";
+                    system("pause");
+                    return false;
+                }
+            }
+            for (int i = 1; i < numlines; i++) {
+                if (adminSet.transInput == "1" && UpperCaseCheck(transSet.transType, transSet.type[i][1])) {
+                    cout << "\n---Duplicate input found---\n";
+                    system("pause");
+                    return false;
+                }
+                else if (adminSet.transInput == "2" && UpperCaseCheck(transSet.transType, transSet.type[i][1]) || transSet.transType == transSet.type[i][0]) {
+                    numPlace = i;
+                    return true;
+                }
+            }
+        }
+        if (adminSet.transInput == "1") {
+            return true;
+        }
+        else {
+            cout << "\n---No record found---\n";
+            system("pause");
+            return false;
+        }
+    }
+
+    if (userSet.userCat == 1) { //User input category
+        userSet.userCat = 0;
+        int numlines = Lines("category") / 2;
+        for (int i = 0; i < numlines; i++) {
+            if (userSet.userInput == menuSet.Cat[i][0] || userSet.userInput == menuSet.Cat[i][2]) {
+                numPlace = i;
+                return true;
+            }
+        }
+        cout << "\n---Invalid Input---\n";
+        system("pause");
+        return false;
+    }
+    else if (userSet.userA == 1) { //User Input Menu
+        if (userSet.userA2 == 1) { //invalid if amount input not digit
+            userSet.userA2 = 0;
+            if (userSet.menuAmount.empty() || userSet.menuAmount[0] == ' ' || userSet.menuAmount[userSet.menuAmount.length() - 1] == ' ') {
+                cout << "\n---Blankspace detected in last or first input---\n";
+                system("pause");
+                return false;
+            }
+            for (int i = 0; i < userSet.menuAmount.length(); i++) {
+                if (!isdigit(userSet.menuAmount[i]))
+                {
+                    cout << "\n---Input digit only for quantity---\n";
+                    system("pause");
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            if (userSet.menuSelection.empty() || userSet.menuSelection[0] == ' ' || userSet.menuSelection[userSet.menuSelection.length() - 1] == ' ') {
+                cout << "\n---Blankspace detected in last or first input---\n";
+                system("pause");
+                return false;
+            }
+            for (int i = pre; i < post; i++) {
+                if (userSet.menuSelection == menuSet.menu[i][0] || userSet.menuSelection == menuSet.menu[i][2]) {
+                    userSet.numPlace = i;
+                    if (userSet.tempNum != 0) {
+                        for (int j = 0; j < userSet.tempNum; j++) {
+                            if (menuSet.menu[i][2] == userSet.selectedMenu[j]) {//invalid if user choose the same item
+                                cout << "\n---Already added---\n";
+                                system("pause");
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+                    else {
+                        return true;
+                    }
+                }
+            }
+            cout << "\n---Invalid Input---\n";
+            system("pause");
+            return false;
+        }
+    }
+    else if (userSet.userU == 1 || userSet.userD == 1) {
+        if (userSet.updateSelection.empty() || userSet.updateSelection[0] == ' ' || userSet.updateSelection[userSet.updateSelection.length() - 1] == ' ') {
+            cout << "\n---Blankspace detected in last or first input---\n";
+            system("pause");
+            return false;
+        }
+        else {
+            for (int i = 0; i < userSet.tempNum; i++) {
+                if (userSet.updateSelection == userSet.selectedMenu[i] || userSet.updateSelection == to_string(i + 1)) {
+                    userSet.numPlace = i;
+                    return true;
+                }
+            }
+            cout << "\n---Invalid Input---\n";
+            system("pause");
+            return false;
+        }
+    }
+    else if (userSet.checkout == 1) {
+        int numlines = (Lines("transType") / 2) + 1;
+        for (int i = 0; i < numlines; i++) {
+            if (userSet.checkoutSelection == transSet.type[i][0] || userSet.checkoutSelection == transSet.type[i][1]) {
+                userSet.numPlace = i;
+                return true;
+            }
+        }
+        cout << "\n---Invalid Input---\n";
+        system("pause");
+        return false;
+    }
+
+    return false;
+}
+
+/*check of duplication using uppercase*/
+bool UpperCaseCheck(string ch1, string ch2) {
+    for (int j = 0; j < ch1.length(); j++) {
+        ch1[j] = toupper(ch1[j]);
+    }
+    for (int j = 0; j < ch2.length(); j++) {
+        ch2[j] = toupper(ch2[j]);
+    }
+    if (ch1 == ch2) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+/*Delete specific admin account from text file*/
+void DataDelete(string filename) {
+    int numlines = Lines(filename) - 1;
+    filewrite.open(filename + ".txt");
+    getline(fileread, adminSet.shopName);
+    if (adminSet.accInput == "2") {
+        filewrite << adminSet.shopName << endl;
+        for (int i = 0; i < numlines; i++) {
+            if (accSet.createName != accSet.account[i][0]) {
+                filewrite << accSet.account[i][0] << " " << accSet.account[i][1] << endl;
+            }
+        }
+    }
+    filewrite.close();
+}
+
+/*print list of category*/
+void DisplayCategory() {
+    int numlines = Lines("category") / 2;
+    fileread.open("category.txt");
+    if (fileread.fail() || numlines == 0) {
+        if (adminSet.adminInput == "1") {
+            cout << "No record found! Please add\n";
+        }
+        else {
+            cout << "No record found! Please add at category configuration\n";
+        }
+    }
+    else {
+        cout << "No. --CATEGORY--\n";
+        for (int i = 0; i < numlines; i++) { //Read category to array
+            fileread >> menuSet.Cat[i][0] >> menuSet.Cat[i][1];
+            fileread.ignore();
+            getline(fileread, menuSet.Cat[i][2]);
+            cout << menuSet.Cat[i][0] << ".  " << menuSet.Cat[i][2] << endl;
+        }
+    }
+    fileread.close();
+    separator();
+}
+
+/*print list of menu*/
+void DisplayMenu() {
+    pre = post = 0; // reset back to 0
+    fileread.open("category.txt");
+    for (int i = 0; i <= numPlace; i++) { //get the number of lines in each menu, numPlace (value for lines)
+        fileread >> temp >> menuSet.location[i];
+        fileread.ignore();
+        getline(fileread, temp);
+        if (i == 0) {
+            post = menuSet.location[i];
+        }
+        else {
+            pre = post;
+            post += menuSet.location[i];
+        }
+    }
+    fileread.close();
+    int numlines = Lines("menu") / 2;
+    fileread.open("menu.txt");
+    for (int i = 0; i < numlines; i++) { //read all menu into menuSet.menu
+        fileread >> menuSet.menu[i][0] >> menuSet.menu[i][1];
+        fileread.ignore();
+        getline(fileread, menuSet.menu[i][2]);
+    }
+    fileread.close();
+    if (pre == post) {
+        cout << "No record found! Please add menu\n";
+        separator();
+    }
+    else {
+        cout << "No --MENU--" << setw(22) << right << "Price" << endl;
+        fileread.open("menu.txt");
+        for (int i = 0; i < post; i++) {
+            if (pre == 0 || i >= pre) {
+                cout << fixed << setprecision(2);
+                cout << menuSet.menu[i][0] << ". " << setw(25) << left << menuSet.menu[i][2] << "RM" << stod(menuSet.menu[i][1]) << endl;
+            }
+        }
+        fileread.close();
+        separator();
+    }
+}
+
+/*print tyoe of transaction*/
+void DisplayTransType()
+{
+    transSet.type[0][0] = "1";
+    transSet.type[0][1] = "Pay At Counter";
+    int numlines = (Lines("transType") / 2) + 1;
+    cout << "No. ---Payment Options---\n";
+    fileread.open("transType.txt");
+    for (int i = 0; i < numlines; i++) {
+        fileread >> transSet.type[i + 1][0];
+        fileread.ignore();
+        getline(fileread, transSet.type[i + 1][1]);
+        cout << transSet.type[i][0] << ".  " << transSet.type[i][1] << endl;
+    }
+    fileread.close();
+    separator();
+}
+
+/*print list of selection and total price*/
+int DisplaySelection() {
+    if (userSet.tempNum == 0) {
+        return 0;
+    }
+    else {
+        cout << "No. --SELECTED MENU--" << setw(10) << right << "Price" << "\t\t" << "Amount" << endl;
+        for (int i = 0; i < userSet.tempNum; i++) {
+            cout << fixed << setprecision(2);
+            cout << i + 1 << ".  " << setw(22) << left << userSet.selectedMenu[i] << "RM" << userSet.menuPrice[i] << "\t" << userSet.menuQuantity[i] << endl;
+        }
+        if (userSet.count == 1) {
+            userSet.count = 0;
+            userSet.totalPrice = 0;
+            for (int i = 0; i < userSet.tempNum; i++) {
+                userSet.totalPrice += userSet.menuPrice[i] * userSet.menuQuantity[i];
+            }
+        }
+        separator();
+    }
+    return 0;
+}
+
+void Receipt() {
+    fileread.open("transLog.txt");
+    if (!fileread.fail()) {
+        while (!fileread.eof()) {
+            getline(fileread, temp);
+            if (temp.empty()) {
+                fileread >> userSet.orderid;
+                fileread.ignore();
+            }
+        }
+    }
+    fileread.close();
+    userSet.orderid++;
+    if (userSet.orderid > 999) {
+        userSet.orderid = userSet.orderid - 1000;
+    }
+    cout << endl;
+    cout << setw(30) << left << " ";
+    for (int i = 0; i < 45; i++) {
+        cout << "~";
+    }
+    cout << endl << setw(30) << left << " " << "| " << setw(22) << right << "Bill" << setw(15) << right << " " << setfill('0') << "#" << setw(3) << right << userSet.orderid << setfill(' ') << " |" << endl;
+    cout << setw(30) << left << " " << "|" << setw(3) << left << " ";
+    for (int i = 0; i < 37; i++) {
+        cout << "-";
+    }
+    cout << setw(3) << left << " " << "|" << endl;
+    cout << setw(30) << left << " " << "|" << " No. Menu" << setw(23) << right << "Price" << "  " << "  Amount" << " |" << endl;
+    int numlines = (userSet.tempNum + 10);
+    for (int i = 0; i < numlines; i++) {
+        if (i < userSet.tempNum) {
+            cout << setw(30) << left << " " << "| ";
+            cout << i + 1 << ".  " << setw(22) << left << userSet.selectedMenu[i] << "RM" << userSet.menuPrice[i] << "   " << setw(4) << userSet.menuQuantity[i] << "  |" << endl;
+        }
+        else if (i == numlines - 6) {
+            cout << setw(30) << left << " " << "|" << setw(3) << left << " ";
+            for (int i = 0; i < 37; i++) {
+                cout << "-";
+            }
+            cout << setw(3) << left << " " << "|" << endl;
+            cout << setw(30) << left << " " << "| " << "   Total:" << setw(19) << right << "RM" << setw(7) << left << userSet.totalPrice << setw(8) << right << "|" << endl;
+        }
+        else if (i == numlines - 2) {
+            cout << setw(30) << left << " " << "| " << setw(33) << right << "Thank you for choosing us" << setw(10) << right << "|" << endl;
+            cout << setw(30) << left << " " << "| " << setw(34) << right << "Please come again next time" << setw(9) << right << "|" << endl;
+        }
+        else {
+            cout << setw(30) << left << " " << "|" << setw(44) << right << "|" << endl;
+        }
+    }
+    cout << setw(30) << left << " ";
+    for (int i = 0; i < 45; i++) {
+        cout << "~";
+    }
+    cout << endl << endl;
+}
+
+/*Admin login Interface*/
+int Administration_Settings() {
+    while (true) {
+        userSet.userInput.clear();
+        adminSet.adminInput = "0";
+        Administration_Interface();
+        fileread.open("account.txt");
+        getline(fileread, adminSet.shopName);
+        fileread >> temp;
+        if (fileread.fail() || temp.empty()) {// check for first time user
+            cout << "FIRST TIME PASS\nUsername >> 1\nPassword >> 1\n";
+            separator();
+        }
+        fileread.ignore();
+        cout << "Username(#E Exit) >> ";
+        cin >> adminSet.adminName;
+        cin.ignore();
+        if (adminSet.adminName == "E" || adminSet.adminName == "e") { //exit administration settings
+            fileread.close();
+            adminSet.adminInput.clear();
+            return 0;
+        }
+        cout << "Password          >> ";
+        cin >> adminSet.adminPass;
+        cin.ignore();
+        if (fileread.fail() || temp.empty()) {// first time user procedure of create username, password and restaurant name
+            fileread.close();
+            if (adminSet.adminName == "1" && adminSet.adminPass == "1") { // first user was force to create their first own account
+                int count = 0;
+                do {
+                    count = 0;
+                    system("cls");
+                    separator();
+                    cout << "Create New Account\n";
+                    separator();
+                    cout << "!!! Please create username and password with more than 5 INPUTS and NO BLANKSPACE !!!\n\n";
+                    cout << "Restaurant Title >> ";
+                    getline(cin, adminSet.shopName);
+                    cout << "Username >> ";
+                    getline(cin, adminSet.adminName);
+                    cout << "Password >> ";
+                    getline(cin, adminSet.adminPass);
+                    if (adminSet.adminName.length() <= 5 || adminSet.adminPass.length() <= 5 || adminSet.adminName.empty() || adminSet.adminPass.empty()) {// force user to create username and password more than 5 inputs
+                        cout << "\n---Please create username and password with more than 5 input---\n";
+                        count++;
+                        system("pause");
+                    }
+                    else {
+                        for (int i = 0; i < adminSet.adminName.length(); i++) { // validation of blankspace in username
+                            if (adminSet.adminName[i] == ' ') {
+                                count++;
+                            }
+                        }
+                        for (int i = 0; i < adminSet.adminPass.length(); i++) { // validation of blankspace in password
+                            if (adminSet.adminPass[i] == ' ') {
+                                count++;
+                            }
+                        }
+                        if (count > 0) {
+                            cout << "\n---Blankspace detected in Username or Password---\n";
+                            system("pause");
+                        }
+                        else if (adminSet.adminName == adminSet.adminPass) { //Invalid if Username and Password are the same
+                            count++;
+                            cout << "\n---Username and Password cannot be the same---\n";
+                            system("pause");
+                        }
+                        else {
+                            filewrite.open("account.txt");
+                            filewrite << adminSet.shopName << endl << adminSet.adminName << " " << adminSet.adminPass << endl;
+                            filewrite.close();
+                            cout << "\n---Create Successful---\n";
+                            system("pause");
+                        }
+                    }
+
+                } while (count != 0);
+            }
+            else {
+                cout << "\n---Invalid Username or Password---\n";
+                system("pause");
+                continue;
+            }
+        }
+        fileread.close();
+        if (VerificationCheck()) {
+            while (true) {
+                Administration_Interface();
+                cout << "#1 Category Configuration\n#2 Menu Configuration\n#3 Account Configuration\n#4 Transaction History\n#5 Transaction Type\n#E System Exit\n>> ";
+                cin >> adminSet.adminInput;
+                cin.ignore();
+                if (adminSet.adminInput == "1") {
+                    CategoryConfig();
+                }
+                else if (adminSet.adminInput == "2") {
+                    MenuConfig();
+                }
+                else if (adminSet.adminInput == "3") {
+                    AccountConfiguration();
+                }
+                else if (adminSet.adminInput == "4") {
+                    TransactionHistory();
+                }
+                else if (adminSet.adminInput == "5") {
+                    TransactionType();
+                }
+                else if (adminSet.adminInput == "E" || adminSet.adminInput == "e") {
+                    Loading("Exiting Administration Settings", 400);
+                    return 0;
+                }
+                else {
+                    cout << "\n---Invalid Input---\n";
+                    system("pause");
+                }
+
+                if (returnMain == 1) {//exit back to main
+                    returnMain = 0;
+                    adminSet.adminInput.clear();
+                    adminSet.accInput.clear();
+                    adminSet.transInput.clear();
+                    adminSet.catInput.clear();
+                    adminSet.menuInput.clear();
+                    return 0;
+                }
+            }
+        }
+        else {
+            cout << "\n---Invalid Username or Password---\n";
+            system("pause");
+        }
+    }
+    return 0;
+}
+
+/*get num of lines in text file*/
+int Lines(string filename)
+{
+    int numlines = 0;
+    fileread.open(filename + ".txt");
+    while (!fileread.fail())
+    {
+        getline(fileread, temp);
+        if (temp.empty())
+        {
+            break;
+        }
+        numlines++;
+    }
+    fileread.close();
+    return numlines;
+}
+
+/*Titles for admin section*/
+void Administration_Interface()
+{
+    system("cls");
+    separator();
+    if (adminSet.adminInput == "1") // Category Configuration
+    {
+        if (adminSet.catInput == "1")
+            cout << "Add Category\n";
+        else if (adminSet.catInput == "2")
+            cout << "Update Category\n";
+        else if (adminSet.catInput == "3")
+            cout << "Delete Category\n";
+        else
+        {
+            cout << " _____         _                                        _____                 __  _        " << endl;
+            cout << "/  __ \\       | |                                      /  __ \\               / _|(_)       " << endl;
+            cout << "| /  \\/  __ _ | |_   ___   __ _   ___   _ __  _   _    | /  \\/  ___   _ __  | |_  _   __ _ " << endl;
+            cout << "| |     / _` || __| / _ \\ / _` | / _ \\ | '__|| | | |   | |     / _ \\ | '_ \\ |  _|| | / _` | " << endl;
+            cout << "| \\__/\\| (_| || |_ |  __/| (_| || (_) || |   | |_| |   | \\__/\\| (_) || | | || |  | || (_| |" << endl;
+            cout << " \\____/ \\__,_| \\__| \\___| \\__, | \\___/ |_|    \\__, |    \\____/ \\___/ |_| |_||_|  |_| \\__, |" << endl;
+            cout << "                           __/ |               __/ |                                  __/ |" << endl;
+            cout << "                          |___/               |___/                                  |___/" << endl;
+        }
+    }
+    else if (adminSet.adminInput == "2") // Menu Configuration
+    {
+        if (!menuSet.category.empty()) {
+            if (adminSet.menuInput == "1")
+            {
+                cout << menuSet.Cat[numPlace][2] << " (Add)\n";
+            }
+            else if (adminSet.menuInput == "2")
+            {
+                cout << menuSet.Cat[numPlace][2] << " (Update)\n";
+            }
+            else if (adminSet.menuInput == "3")
+            {
+                cout << menuSet.Cat[numPlace][2] << " (Delete)\n";
+            }
+            else
+            {
+                cout << menuSet.Cat[numPlace][2] << endl;
+            }
+        }
+        else
+        {
+            cout << "___  ___                        _____                 __  _        " << endl;
+            cout << "|  \\/  |                       /  __ \\               / _|(_)       " << endl;
+            cout << "| .  . |  ___  _ __   _   _    | /  \\/  ___   _ __  | |_  _   __ _ " << endl;
+            cout << "| |\\/| | / _ \\| '_ \\ | | | |   | |     / _ \\ | '_ \\ |  _|| | / _` | " << endl;
+            cout << "| |  | ||  __/| | | || |_| |   | \\__/\\| (_) || | | || |  | || (_| |" << endl;
+            cout << "\\_|  |_/ \\___||_| |_| \\__,_|    \\____/ \\___/ |_| |_||_|  |_| \\__, |" << endl;
+            cout << "                                                              __/ |" << endl;
+            cout << "                                                             |___/ " << endl;
+        }
+    }
+    else if (adminSet.adminInput == "3") // acc config
+    {
+        if (adminSet.accInput == "1")
+            cout << "Creating New Account\n";
+        else if (adminSet.accInput == "2")
+            cout << "Deactivating Account\n";
+        else if (adminSet.accInput == "3")
+            cout << "Rename of Restaurant Title\n";
+        else
+        {
+            cout << "  ___                                  _      _____                 __  _        " << endl;
+            cout << " / _ \\                                | |    /  __ \\               / _|(_)       " << endl;
+            cout << "/ /_\\ \\  ___  ___  ___   _   _  _ __  | |_   | /  \\/  ___   _ __  | |_  _   __ _ " << endl;
+            cout << "|  _  | / __|/ __|/ _ \\ | | | || '_ \\ | __|  | |     / _ \\ | '_ \\ |  _|| | / _` |" << endl;
+            cout << "| | | || (__| (__| (_) || |_| || | | || |_   | \\__/\\| (_) || | | || |  | || (_| |" << endl;
+            cout << "\\_| |_/ \\___|\\___|\\___/  \\__,_||_| |_| \\__|   \\____/ \\___/ |_| |_||_|  |_| \\__, |" << endl;
+            cout << "                                                                            __/ |" << endl;
+            cout << "                                                                           |___/ " << endl;
+        }
+    }
+    else if (adminSet.adminInput == "4") // trans history
+    {
+        cout << " _____                                     _    _                  _   _  _       _                      " << endl;
+        cout << "|_   _|                                   | |  (_)                | | | |(_)     | |                     " << endl;
+        cout << "  | | _ __  __ _  _ __   ___   __ _   ___ | |_  _   ___   _ __    | |_| | _  ___ | |_  ___   _ __  _   _ " << endl;
+        cout << "  | || '__|/ _` || '_ \\ / __| / _` | / __|| __|| | / _ \\ | '_ \\   |  _  || |/ __|| __|/ _ \\ | '__|| | | |" << endl;
+        cout << "  | || |  | (_| || | | |\\__ \\| (_| || (__ | |_ | || (_) || | | |  | | | || |\\__ \\| |_| (_) || |   | |_| |" << endl;
+        cout << "  \\_/|_|   \\__,_||_| |_||___/ \\__,_| \\___| \\__||_| \\___/ |_| |_|  \\_| |_/|_||___/ \\__|\\___/ |_|    \\__, |" << endl;
+        cout << "                                                                                                    __/ |" << endl;
+        cout << "                                                                                                   |___/ " << endl;
+    }
+    else if (adminSet.adminInput == "5") // trans Type
+    {
+        if (adminSet.transInput == "1")
+        {
+            cout << "Transaction Type (Add)\n";
+        }
+        else if (adminSet.transInput == "2")
+        {
+            cout << "Transaction Type (Delete)\n";
+        }
+        else {
+            cout << " _____                                     _    _                  _____                   " << endl;
+            cout << "|_   _|                                   | |  (_)                |_   _|                  " << endl;
+            cout << "  | | _ __  __ _  _ __   ___   __ _   ___ | |_  _   ___   _ __      | | _   _  _ __    ___ " << endl;
+            cout << "  | || '__|/ _` || '_ \\ / __| / _` | / __|| __|| | / _ \\ | '_ \\     | || | | || '_ \\  / _ \\" << endl;
+            cout << "  | || |  | (_| || | | |\\__ \\| (_| || (__ | |_ | || (_) || | | |    | || |_| || |_) ||  __/" << endl;
+            cout << "  \\_/|_|   \\__,_||_| |_||___/ \\__,_| \\___| \\__||_| \\___/ |_| |_|    \\_/ \\__, || .__/  \\___|" << endl;
+            cout << "                                                                         __/ || |          " << endl;
+            cout << "                                                                        |___/ |_|          " << endl;
+        }
+    }
+    else
+    {
+        cout << "  ___      _           _       _     _             _   _               _____      _   _   _                 " << endl;
+        cout << " / _ \\    | |         (_)     (_)   | |           | | (_)             /  ___|    | | | | (_)                " << endl;
+        cout << "/ /_\\ \\ __| |_ __ ___  _ _ __  _ ___| |_ _ __ __ _| |_ _  ___  _ __   \\ `--.  ___| |_| |_ _ _ __   __ _ ___ " << endl;
+        cout << "|  _  |/ _` | '_ ` _ \\| | '_ \\| / __| __| '__/ _` | __| |/ _ \\| '_ \\   `--. \\/ _ \\ __| __| | '_ \\ / _` / __|" << endl;
+        cout << "| | | | (_| | | | | | | | | | | \\__ \\ |_| | | (_| | |_| | (_) | | | | /\\__/ /  __/ |_| |_| | | | | (_| \\__ \\" << endl;
+        cout << "\\_| |_/\\__,_|_| |_| |_|_|_| |_|_|___/\\__|_|  \\__,_|\\__|_|\\___/|_| |_| \\____/ \\___|\\__|\\__|_|_| |_|\\__, |___/" << endl;
+        cout << "                                                                                                   __/ |    " << endl;
+        cout << "                                                                                                  |___/     " << endl;
+
+    }
+    separator();
+}
+
+/*Titles for user section*/
+void User_Interface()
+{
+    system("cls");
+    separator();
+    if (userSet.userA == 1) {
+        cout << menuSet.Cat[numPlace][2] << endl;
+        separator();
+        cout << "    .--,--.\t\t  .___  ___.  _______ .__   __.  __    __  \t\t      )" << endl;
+        cout << "    `.  ,.'\t\t  |   \\/   | |   ____||  \\ |  | |  |  |  |\t\t     (" << endl;
+        cout << "     |___| \t\t  |  \\  /  | |  |__   |   \\|  | |  |  |  |\t\t  _.-~(~-. " << endl;
+        cout << "     :o o: \t\t  |  |\\/|  | |   __|  |  . `  | |  |  |  |\t\t (@\\`---'/. " << endl;
+        cout << "   _ `~^~'_\t\t  |  |  |  | |  |____ |  |\\   | |  `--'  |\t\t('  `._.'  `)  " << endl;
+        cout << "  /'   ^   `\\\t\t  |__|  |__| |_______||__| \\__|  \\______/\t\t `-..___..-' " << endl;
+        cout << endl;
+    }
+    else if (userSet.userU == 1) {
+        cout << "    .--,--.\t\t _   _ ______ ______   ___  _____  _____ \t\t      )" << endl;
+        cout << "    `.  ,.'\t\t| | | || ___ \\|  _  \\ / _ \\|_   _||  ___|\t\t     (" << endl;
+        cout << "     |___| \t\t| | | || |_/ /| | | |/ /_\\ \\ | |  | |__\t\t\t  _.-~(~-. " << endl;
+        cout << "     :o o: \t\t| | | ||  __/ | | | ||  _  | | |  |  __| \t\t (@\\`---'/. " << endl;
+        cout << "   _ `~^~'_\t\t| |_| || |    | |/ / | | | | | |  | |___ \t\t('  `._.'  `)  " << endl;
+        cout << "  /'   ^   `\\\t\t \\___/ \\_|    |___/  \\_| |_/ \\_/  \\____/\t\t `-..___..-' " << endl;
+        cout << endl;
+    }
+    else if (userSet.userD == 1) {
+        cout << "    .--,--.\t\t______  _____  _      _____  _____  _____ \t\t      )" << endl;
+        cout << "    `.  ,.'\t\t|  _  \\|  ___|| |    |  ___||_   _||  ___|\t\t     (" << endl;
+        cout << "     |___| \t\t| | | || |__  | |    | |__    | |  | |__  \t\t  _.-~(~-. " << endl;
+        cout << "     :o o: \t\t| | | ||  __| | |    |  __|   | |  |  __|\t\t (@\\`---'/. " << endl;
+        cout << "   _ `~^~'_\t\t| |/ / | |___ | |____| |___   | |  | |___ \t\t('  `._.'  `)  " << endl;
+        cout << "  /'   ^   `\\\t\t|___/  \\____/ \\_____/\\____/   \\_/  \\____/    \t\t `-..___..-' " << endl;
+        cout << endl;
+    }
+    else if (userSet.checkout == 1) {
+        cout << "\t\t\t _____  _   _  _____  _____  _   __ _____  _   _  _____ " << endl;
+        cout << "\t\t\t/  __ \\| | | ||  ___|/  __ \\| | / /|  _  || | | ||_   _|" << endl;
+        cout << "\t\t\t| /  \\/| |_| || |__  | /  \\/| |/ / | | | || | | |  | |  " << endl;
+        cout << "\t\t\t| |    |  _  ||  __| | |    |    \\ | | | || | | |  | |  " << endl;
+        cout << "\t\t\t| \\__/\\| | | || |___ | \\__/\\| |\\  \\\\ \\_/ /| |_| |  | |  " << endl;
+        cout << "\t\t\t \\____/\\_| |_/\\____/  \\____/\\_| \\_/ \\___/  \\___/   \\_/  " << endl;
+        cout << endl;
+    }
+    else {
+        fileread.open("account.txt");
+        if (fileread.fail()) {
+            cout << "No title found, please add in admin settings\n";
+            separator();
+        }
+        else {
+            getline(fileread, adminSet.shopName);
+            cout << "Welcome to " << adminSet.shopName << " restaurant " << endl;
+            separator();
+            cout << "    .--,--.\t _____   ___  _____  _____  _____  _____ ______ __   __\t        )" << endl;
+            cout << "    `.  ,.'\t/  __ \\ / _ \\|_   _||  ___||  __ \\|  _  || ___ \\\\ \\ / /\t       (" << endl;
+            cout << "     |___| \t| /  \\// /_\\ \\ | |  | |__  | |  \\/| | | || |_/ / \\ V / \t    _.-~(~-. " << endl;
+            cout << "     :o o: \t| |    |  _  | | |  |  __| | | __ | | | ||    /   \\ /\t   (@\\`---'/. " << endl;
+            cout << "   _ `~^~'_\t| \\__/\\| | | | | |  | |___ | |_\\ \\\\ \\_/ /| |\\ \\   | | \t  ('  `._.'  `)  " << endl;
+            cout << "  /'   ^   `\\\t \\____/\\_| |_/ \\_/  \\____/  \\____/ \\___/ \\_| \\_|  \\_/  \t   `-..___..-' " << endl;
+            cout << endl;
+        }
+        fileread.close();
+    }
+}
+
+/*print out symbols for further use of decoration*/
+void separator() {
+    for (int i = 0; i < 110; ++i) {
+        cout << "-";
+    }
+    cout << endl;
+}
+
+/*Loading Animation*/
+void Loading(string name, int speed) {
+    cout << endl << name;
+    cout.flush();
+    for (int j = 0; j < 1; j++) {
+        for (int i = 0; i < 3; i++) {
+            cout << ".";
+            cout.flush();
+            Sleep(speed);
+        }
+        cout << "\b\b\b   \b\b\b";
+    }
+    system("cls");
+}
